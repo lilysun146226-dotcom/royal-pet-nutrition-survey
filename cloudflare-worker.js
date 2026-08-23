@@ -72,8 +72,9 @@ export default {
       if (url.pathname === "/api/stats" && request.method === "GET") {
         const result = await env.DB.prepare(`SELECT pet_type, age_stage, health_status, concerns, feeding_issue, royal_usage, trust_source, price_attitude FROM survey_responses ORDER BY created_at DESC`).all();
         const rows = result.results || [];
-        const stages = {}, concerns = {}, health = {}, sentiment = {}, segments = {};
+        const petTypes = {}, stages = {}, concerns = {}, health = {}, sentiment = {}, segments = {};
         for (const row of rows) {
+          countInto(petTypes, [row.pet_type]);
           countInto(stages, [row.age_stage]);
           countInto(concerns, parseStored(row.concerns));
           countInto(health, parseStored(row.health_status));
@@ -81,7 +82,7 @@ export default {
           countInto(sentiment, [feeling]);
           countInto(segments, personas(row));
         }
-        return json({ total: rows.length, stages, concerns, health, sentiment, segments, updatedAt: new Date().toISOString() });
+        return json({ total: rows.length, petTypes, stages, concerns, health, sentiment, segments, updatedAt: new Date().toISOString() });
       }
 
       if (url.pathname === "/" && request.method === "GET") return json({ service: "Royal Pet Nutrition Survey API", status: "ok" });
